@@ -28,14 +28,15 @@ export type SudokuBoardProps = {
   type?: Board["type"];
   size?: Board["size"];
   className?: string;
+	cellSize?: number;
   onHoverCell?: (context: CellContext & { event: React.MouseEvent<HTMLDivElement, MouseEvent> }) => void;
   onClickCell?: (context: CellContext & { event: React.MouseEvent<HTMLDivElement, MouseEvent> }) => void;
   onControlClickCell?: (context: CellContext & { event: React.MouseEvent<HTMLDivElement, MouseEvent> }) => void;
   onShiftClickCell?: (context: CellContext & { event: React.MouseEvent<HTMLDivElement, MouseEvent> }) => void;
-  mode?: z.infer<typeof BoardMode>;
   style?: z.infer<typeof BoardStyle>;
   hints: Mark[];
-	setHints: Setter<Mark[]>;
+	mode: z.infer<typeof BoardMode>;
+	setHints?: Setter<Mark[]>;
 };
 
 export const SudokuBoard: React.FC<SudokuBoardProps> = ({
@@ -45,12 +46,17 @@ export const SudokuBoard: React.FC<SudokuBoardProps> = ({
 	mode = BoardMode.Enum.SOLVE,
 	style = BoardStyle.Enum.NORMAL,
 	hints,
+	cellSize = SudokuConstants.Cells.SIZE,
 	setHints,
 	onHoverCell,
 	onClickCell,
 	onControlClickCell,
 	onShiftClickCell,
 }) => {
+	if (mode === BoardMode.Enum.EDIT && !setHints) {
+		throw new Error("Hint setter is required for an editable board");
+	}
+
 	const [mouseDown, setMouseDown] = useState<boolean>(false);
 	const [eraseMode, setEraseMode] = useState<boolean>(false);
 	const [selectedCells, setSelectedCells] = useState<CellIndexes[]>([]);
@@ -614,8 +620,8 @@ export const SudokuBoard: React.FC<SudokuBoardProps> = ({
 			)}
 			tabIndex={0}
 			style={{
-				width: SudokuConstants.Cells.SIZE,
-				height: SudokuConstants.Cells.SIZE,
+				width: cellSize,
+				height: cellSize,
 			}}
 			onMouseEnter={getMouseEnterHandler({ blockIndex, cellIndex })}
 			onMouseDown={getMouseDownCellHandler({ blockIndex, cellIndex })}

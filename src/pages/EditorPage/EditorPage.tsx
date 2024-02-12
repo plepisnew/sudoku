@@ -9,10 +9,20 @@ import { Instructions, Usage } from "./BoardHelpers";
 import { Button } from "@/components/ui/Button";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useInput } from "@/components/hooks/useInput";
-import toastLib from "react-hot-toast";
 import { toast } from "@/components/ui/Toaster";
+import { api } from "@/api";
+
+export const EditorPageConstants = {
+	PATH: "/editor",
+};
 
 export const EditorPage: React.FC = () => {
+	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
+
+	const boardId = searchParams.get("id");
+	const board = api.Sudoku.listBoards().payload.find(({ id }) => id === boardId);
+
 	const [BoardTypeDropdown, { value: boardType, setValue: setBoardType }] = useDropdown(
 		[
 			{
@@ -48,7 +58,7 @@ export const EditorPage: React.FC = () => {
 				label: "Windoku",
 			},
 		],
-		{ label: "Board type" },
+		{ label: "Board type", defaultValue: board?.type },
 	);
 
 	const [BoardSizeDropdown, { value: boardSize, setValue: setBoardSize }] = useDropdown(
@@ -62,7 +72,7 @@ export const EditorPage: React.FC = () => {
 				label: "Small (6x6)",
 			},
 		],
-		{ label: "Board size" },
+		{ label: "Board size", defaultValue: board?.size },
 	);
 
 	const [BoardStyleDropdown, { value: boardStyle }] = useDropdown(
@@ -85,6 +95,7 @@ export const EditorPage: React.FC = () => {
 
 	const [NameInput, { value: name }] = useInput({
 		label: "Board name",
+		initialValue: board?.name,
 		props: { placeholder: "My Cursed board" },
 	});
 
@@ -96,6 +107,7 @@ export const EditorPage: React.FC = () => {
 		},
 		optional: true,
 		label: "Board description",
+		initialValue: board?.description,
 		wrapperClassName: "flex-grow",
 	});
 
@@ -108,11 +120,6 @@ export const EditorPage: React.FC = () => {
 		setBoardType,
 	});
 
-	const navigate = useNavigate();
-	const [searchParams] = useSearchParams();
-	const boardId = searchParams.get("id");
-	const board = sudokuContext.boards.find((_board) => _board.id === boardId);
-
 	const StorageButtons = (
 		<React.Fragment>
 			<Button variant="secondary" className="flex-1" onClick={() => navigate("/")}>
@@ -122,27 +129,37 @@ export const EditorPage: React.FC = () => {
 				variant="primary"
 				className="flex-1"
 				onClick={() => {
-					// toast("Testing natural behavior");
-					// toast.custom(<div className="bg-red-500">Testing unnatural behavior</div>);
-					// toastLib.success("testing");
-					toast.error("Error");
-					toast.information("Information");
-					toast.loading("Loading");
-					toast.success("Success");
-					toast.warning("Warning");
-					return;
+					console.log({ board });
+
 					if (board) {
 						const updateResponse = sudokuContext.updateBoard({ id: boardId!, name, description });
 
-						// TODO notify about successful or error update
-						return;
+						if (updateResponse.ok) {
+							toast.success(
+								<span>
+									Board <span className="font-semibold">"{board.name}"</span> successfully updated
+								</span>,
+							);
+							return navigate("/");
+						}
+
+						return toast.error(updateResponse.error);
 					}
 
 					const exportResponse = sudokuContext.exportBoard({ name, description });
 
 					if (exportResponse.ok) {
-						navigate("/");
+						toast.success(
+							<span>
+								Board{" "}
+								<span className="font-semibold">"{exportResponse.payload.newBoard.name}"</span>{" "}
+								successfully created
+							</span>,
+						);
+						return navigate("/");
 					}
+
+					return toast.error(exportResponse.error);
 				}}
 			>
 				{board ? "Save Board" : "Create Board"}

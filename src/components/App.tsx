@@ -12,7 +12,7 @@ export const App: React.FC = () => (
 		<Toaster
 			toastOptions={{
 				position: "bottom-right",
-				duration: 1000000,
+				duration: 4000,
 				style: {
 					background: "none",
 					padding: 0,
@@ -20,7 +20,6 @@ export const App: React.FC = () => (
 					maxWidth: 500,
 					minWidth: 250,
 				},
-				className: "![&>*]:m-0 ![&>*]:p-0",
 			}}
 		/>
 	</BrowserRouter>

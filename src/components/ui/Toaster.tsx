@@ -46,20 +46,20 @@ export const Toast: React.FC<ToastProps & PropsWithChildren> = ({
 					"0.35s cubic-bezier(0.21, 1.02, 0.73, 1) 0s 1 normal forwards running go2645569136",
 			}}
 		>
-			<div className={cn("toast-content py-2 px-3 flex-grow", "rounded-l-lg bg-zinc-100")}>
+			<div className={cn("toast-content py-3 px-4 flex-grow", "rounded-l-lg bg-zinc-100")}>
 				{children}
 			</div>
 			<div className={cn("toast-separator", "w-[1px] h-full bg-zinc-300")} />
 			<div
 				className={cn(
 					"toast-icon-container",
-					"flex items-center justify-center h-full p-1",
+					"flex items-center justify-center h-full p-2",
 					"bg-zinc-200 cursor-pointer rounded-r-lg",
 					classNames[type],
 				)}
 				onClick={handleDismissIcon}
 			>
-				<IoIosCloseCircle size={24} className={cn("toast-icon")} />
+				<IoIosCloseCircle size={28} className={cn("toast-icon")} />
 			</div>
 		</div>
 	);

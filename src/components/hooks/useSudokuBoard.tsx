@@ -53,15 +53,11 @@ export const useSudokuBoard = ({
 			return { ok: false, error: "Please supply a name for the board" };
 		}
 
-		if (!options.description) {
-			return { ok: false, error: "Please supply a description for the board" };
-		}
-
 		const addBoardResponse = api.Sudoku.addBoard({
 			size: boardSize,
 			type: boardType,
 			name: options.name,
-			description: options.description,
+			description: options.description ?? "",
 			hints: [],
 		});
 
@@ -92,6 +88,10 @@ export const useSudokuBoard = ({
 	};
 
 	const updateBoard: SudokuBoardContext["updateBoard"] = (board) => {
+		if (!board.name) {
+			return { ok: false, error: "Please supply a name for the board" };
+		}
+
 		const updateResponse = api.Sudoku.updateBoard({
 			...board,
 			type: boardType,

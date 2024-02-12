@@ -4,6 +4,10 @@ import { entropy } from "@/utils/entropy";
 import { SudokuCard } from "./SudokuCard";
 import { api } from "@/api";
 
+export const HomePageConstants = {
+	PATH: "/",
+};
+
 export const HomePage: React.FC = () => {
 	const [randomValue, setRandomValue] = useState<string>(entropy.fromAlphabet((e) => e.alpha, 5));
 
@@ -33,7 +37,7 @@ export const HomePage: React.FC = () => {
 			<h2>Here are your boards, bitch. Also {Highlight(randomValue)}</h2>
 			<div className={cn("grid grid-cols-2")}>
 				{api.Sudoku.listBoards().payload.map((board) => (
-					<SudokuCard {...board} />
+					<SudokuCard key={board.id} {...board} />
 				))}
 			</div>
 		</div>

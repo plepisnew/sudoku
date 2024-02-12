@@ -13,17 +13,19 @@ export const useInput = <TArea extends boolean>(useInputOptions?: {
 	wrapperClassName?: string;
 	labelClassName?: string;
 	label?: string;
+	initialValue?: string;
 	optional?: boolean;
 }): [JSX.Element, InputContext] => {
 	const {
 		label,
+		initialValue,
 		optional = false,
 		props,
 		wrapperClassName,
 		labelClassName,
 	} = useInputOptions ?? {};
 
-	const [value, setValue] = useState("");
+	const [value, setValue] = useState(initialValue ?? "");
 
 	const InputNode = (
 		<Input

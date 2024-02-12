@@ -71,6 +71,7 @@ export const SudokuConstants = {
 	LOCAL_STORAGE_KEY: "boards",
 	Cells: {
 		SIZE: 72,
+		SIZE_STATIC: 32,
 	},
 	Blocks: {
 		[BoardSize.Enum.SMALL]: {
@@ -101,11 +102,12 @@ export class SudokuService {
 	}
 
 	listBoards(): ApiResult<Board[], true> {
-		const boards = localStorage.getItem(SudokuConstants.LOCAL_STORAGE_KEY);
+		const boards: Board[] = [];
 
-		if (boards == null) {
+		try {
+			boards.push(...JSON.parse(localStorage.getItem(SudokuConstants.LOCAL_STORAGE_KEY) ?? ""));
+		} catch (err) {
 			this.clearBoards();
-
 			return { ok: true, payload: [] };
 		}
 
@@ -122,23 +124,16 @@ export class SudokuService {
 
 	addBoard(board: Omit<Board, "id">): ApiResult<{ boards: Board[]; newBoard: Board }> {
 		const storableBoard: Board = { ...board, id: crypto.randomUUID() };
-
+		console.log({ storableBoard });
 		const result = boardSchema.safeParse(storableBoard);
+		console.log({ result });
 
 		if (!result.success) {
 			return { ok: false, error: "Input board does not adhere to schema" };
 		}
 
-		const boards: Board[] = [result.data];
-
-		const boardsResponse = this.listBoards();
-
-		if (boardsResponse.ok) {
-			boards.push(...boardsResponse.payload);
-		} else {
-			this.clearBoards();
-		}
-
+		const boards: Board[] = [result.data, ...this.listBoards().payload];
+		console.log({ boards });
 		localStorage.setItem(SudokuConstants.LOCAL_STORAGE_KEY, JSON.stringify(boards));
 
 		return { ok: true, payload: { boards, newBoard: storableBoard } };
