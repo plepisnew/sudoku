@@ -7,7 +7,10 @@ import { cn } from "@/utils/cn";
 import React from "react";
 import { Instructions, Usage } from "./BoardHelpers";
 import { Button } from "@/components/ui/Button";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { useInput } from "@/components/hooks/useInput";
+import toastLib from "react-hot-toast";
+import { toast } from "@/components/ui/Toaster";
 
 export const EditorPage: React.FC = () => {
 	const [BoardTypeDropdown, { value: boardType, setValue: setBoardType }] = useDropdown(
@@ -80,6 +83,22 @@ export const EditorPage: React.FC = () => {
 		{ label: "Board style" },
 	);
 
+	const [NameInput, { value: name }] = useInput({
+		label: "Board name",
+		props: { placeholder: "My Cursed board" },
+	});
+
+	const [DescriptionInput, { value: description }] = useInput({
+		props: {
+			placeholder: "Short optional description of your masterpiece",
+			isArea: true,
+			className: "resize-none flex-grow",
+		},
+		optional: true,
+		label: "Board description",
+		wrapperClassName: "flex-grow",
+	});
+
 	const [Board, sudokuContext] = useSudokuBoard({
 		boardMode: BoardMode.Enum.EDIT,
 		boardType,
@@ -89,17 +108,44 @@ export const EditorPage: React.FC = () => {
 		setBoardType,
 	});
 
-	const [params] = useSearchParams();
-
-	console.log(params.get("id"));
+	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
+	const boardId = searchParams.get("id");
+	const board = sudokuContext.boards.find((_board) => _board.id === boardId);
 
 	const StorageButtons = (
 		<React.Fragment>
-			<Button variant="secondary" className="flex-1">
-				Discard Board
+			<Button variant="secondary" className="flex-1" onClick={() => navigate("/")}>
+				{board ? "Discard Changes" : "Drop Board"}
 			</Button>
-			<Button variant="primary" className="flex-1">
-				Save
+			<Button
+				variant="primary"
+				className="flex-1"
+				onClick={() => {
+					// toast("Testing natural behavior");
+					// toast.custom(<div className="bg-red-500">Testing unnatural behavior</div>);
+					// toastLib.success("testing");
+					toast.error("Error");
+					toast.information("Information");
+					toast.loading("Loading");
+					toast.success("Success");
+					toast.warning("Warning");
+					return;
+					if (board) {
+						const updateResponse = sudokuContext.updateBoard({ id: boardId!, name, description });
+
+						// TODO notify about successful or error update
+						return;
+					}
+
+					const exportResponse = sudokuContext.exportBoard({ name, description });
+
+					if (exportResponse.ok) {
+						navigate("/");
+					}
+				}}
+			>
+				{board ? "Save Board" : "Create Board"}
 			</Button>
 		</React.Fragment>
 	);
@@ -115,7 +161,10 @@ export const EditorPage: React.FC = () => {
 						{BoardStyleDropdown}
 					</Box>
 					<Box className={cn("details-config", "flex-grow")} title="Board Details">
-						<p className="mb-auto">details</p>
+						<div className={cn("inputs-container", "flex flex-col gap-4 flex-grow")}>
+							{NameInput}
+							{DescriptionInput}
+						</div>
 						<div className={cn("button-container", "flex gap-4")}>{StorageButtons}</div>
 					</Box>
 				</div>

@@ -1,6 +1,6 @@
-import { Board, BoardSize, BoardType, SudokuConstants } from "@/api/Sudoku";
+import { Board, BoardSize, BoardType, CellIndexes, Mark, SudokuConstants } from "@/api/Sudoku";
 import { cn } from "@/utils/cn";
-import { ArrayFilter } from "@/utils/types";
+import { ArrayFilter, Setter } from "@/utils/types";
 import React, {
 	KeyboardEventHandler,
 	MouseEventHandler,
@@ -19,13 +19,9 @@ export const BoardStyle = z.enum(["NORMAL", "MINIMAL", "INFORMAL"]);
 
 export const BoardMode = z.enum(["SOLVE", "EDIT", "STATIC"]);
 
-export type CellIndexes = { blockIndex: number; cellIndex: number };
-
 export type CellCoordinates = { x: number; y: number };
 
 export type PencilMark = CellIndexes & { centered: boolean; values: number[] };
-
-export type Mark = CellIndexes & { value: number; isHint: boolean };
 
 // prettier-ignore
 export type SudokuBoardProps = {
@@ -38,7 +34,8 @@ export type SudokuBoardProps = {
   onShiftClickCell?: (context: CellContext & { event: React.MouseEvent<HTMLDivElement, MouseEvent> }) => void;
   mode?: z.infer<typeof BoardMode>;
   style?: z.infer<typeof BoardStyle>;
-  hints?: Omit<Mark, "isHint">[];
+  hints: Mark[];
+	setHints: Setter<Mark[]>;
 };
 
 export const SudokuBoard: React.FC<SudokuBoardProps> = ({
@@ -48,6 +45,7 @@ export const SudokuBoard: React.FC<SudokuBoardProps> = ({
 	mode = BoardMode.Enum.SOLVE,
 	style = BoardStyle.Enum.NORMAL,
 	hints,
+	setHints,
 	onHoverCell,
 	onClickCell,
 	onControlClickCell,
@@ -57,9 +55,7 @@ export const SudokuBoard: React.FC<SudokuBoardProps> = ({
 	const [eraseMode, setEraseMode] = useState<boolean>(false);
 	const [selectedCells, setSelectedCells] = useState<CellIndexes[]>([]);
 	const [pencilMarks, setPencilMarks] = useState<PencilMark[]>([]);
-	const [marks, setMarks] = useState<Mark[]>(
-		hints?.map((hint) => ({ ...hint, isHint: true })) ?? [],
-	);
+	const [marks, setMarks] = useState<Mark[]>([]);
 
 	useEffect(() => {
 		// setSelectedCells([]);
@@ -294,11 +290,11 @@ export const SudokuBoard: React.FC<SudokuBoardProps> = ({
 
 		const existingMarks: Mark[] = marks
 			.filter((mark) => selectedCells.some(getCellComparer(mark)))
-			.map((mark) => ({ ...mark, value: mark.isHint ? mark.value : value }));
+			.map((mark) => ({ ...mark, value }));
 
 		const newMarks: Mark[] = selectedCells
 			.filter((selectedCell) => !marks.some(getCellComparer(selectedCell)))
-			.map((cell) => ({ ...cell, value, isHint: false }));
+			.map((cell) => ({ ...cell, value }));
 
 		setMarks([...unselectedMarks, ...existingMarks, ...newMarks]);
 	};
@@ -512,9 +508,7 @@ export const SudokuBoard: React.FC<SudokuBoardProps> = ({
 					if (e.shiftKey || e.ctrlKey) {
 						setPencilMarks(pencilMarks.filter(cellFilterer));
 					} else {
-						setMarks(
-							marks.filter((mark) => mark.isHint || !selectedCells.some(getCellComparer(mark))),
-						);
+						setMarks(marks.filter((mark) => !selectedCells.some(getCellComparer(mark))));
 					}
 					break;
 				case "ArrowUp":
@@ -636,7 +630,8 @@ export const SudokuBoard: React.FC<SudokuBoardProps> = ({
 				{!marks.some(getCellComparer({ blockIndex, cellIndex })) &&
 					PencilMarkContents({ cellIndex, blockIndex })}
 			</div>
-			{marks.find((mark) => mark.blockIndex === blockIndex && mark.cellIndex === cellIndex)?.value}
+			{hints.find(getCellComparer({ blockIndex, cellIndex }))?.value ??
+				marks.find(getCellComparer({ blockIndex, cellIndex }))?.value}
 		</div>
 	);
 

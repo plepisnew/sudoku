@@ -1,4 +1,4 @@
-import { DetailedHTMLProps, Dispatch, HTMLAttributes, SetStateAction } from "react";
+import { Dispatch, SetStateAction } from "react";
 
 export type Setter<T> = Dispatch<SetStateAction<T>>;
 
@@ -11,8 +11,3 @@ export type ArrayMap<TSource, TDestination> = (
 export type ArrayFilter<TSource> = ArrayMap<TSource, boolean>;
 
 export type ArrayForEach<TSource> = ArrayMap<TSource, void>;
-
-export type HTMLProps<TElement extends HTMLElement = HTMLElement> = DetailedHTMLProps<
-	HTMLAttributes<TElement>,
-	TElement
->;

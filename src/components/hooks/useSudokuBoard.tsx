@@ -1,16 +1,19 @@
-import React, { ReactNode } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { BoardMode, BoardStyle, SudokuBoard, SudokuBoardProps } from "../sudoku/SudokuBoard";
 import { Board, BoardSize, BoardType, SudokuService } from "@/api/Sudoku";
 import { z } from "zod";
-import { useBoardsApi } from "@/utils/hooks";
-import { ApiResult } from "@/api";
+import { ApiResult, api } from "@/api";
 import { Setter } from "@/utils/types";
 
-export type BoardContext = {
+export type SudokuBoardContext = {
 	importBoard: (id: Board["id"]) => ApiResult<{ board: Board }>;
 	exportBoard: (
 		options: Pick<Board, "name" | "description">,
 	) => ReturnType<SudokuService["addBoard"]>;
+	updateBoard: (
+		options: Pick<Board, "id" | "name" | "description">,
+	) => ReturnType<SudokuService["updateBoard"]>;
+	boards: Board[];
 };
 
 export type UseSudokuBoardOptions = {
@@ -37,11 +40,24 @@ export const useSudokuBoard = ({
 	boardStyle = BoardStyle.Enum.NORMAL,
 	setBoardType,
 	setBoardSize,
-}: UseSudokuBoardOptions): [ReactNode, BoardContext] => {
-	const boardsApi = useBoardsApi();
+}: UseSudokuBoardOptions): [ReactNode, SudokuBoardContext] => {
+	const [boards, setBoards] = useState<Board[]>([]);
+	const [boardHints, setBoardHints] = useState<Board["hints"]>([]);
 
-	const exportBoard: BoardContext["exportBoard"] = (options) => {
-		const addBoardResponse = boardsApi.addBoard({
+	useEffect(() => {
+		setBoards(api.Sudoku.listBoards().payload);
+	}, []);
+
+	const exportBoard: SudokuBoardContext["exportBoard"] = (options) => {
+		if (!options.name) {
+			return { ok: false, error: "Please supply a name for the board" };
+		}
+
+		if (!options.description) {
+			return { ok: false, error: "Please supply a description for the board" };
+		}
+
+		const addBoardResponse = api.Sudoku.addBoard({
 			size: boardSize,
 			type: boardType,
 			name: options.name,
@@ -49,11 +65,15 @@ export const useSudokuBoard = ({
 			hints: [],
 		});
 
+		if (addBoardResponse.ok) {
+			setBoards(addBoardResponse.payload.boards);
+		}
+
 		return addBoardResponse;
 	};
 
-	const importBoard: BoardContext["importBoard"] = (id) => {
-		const boards = boardsApi.listBoards().payload;
+	const importBoard: SudokuBoardContext["importBoard"] = (id) => {
+		const boards = api.Sudoku.listBoards().payload;
 
 		const board = boards.find((board) => board.id === id);
 
@@ -63,6 +83,7 @@ export const useSudokuBoard = ({
 
 		setBoardType(board.type);
 		setBoardSize(board.size);
+		setBoardHints(board.hints);
 
 		return {
 			ok: true,
@@ -70,14 +91,38 @@ export const useSudokuBoard = ({
 		};
 	};
 
-	const boardContext: BoardContext = {
+	const updateBoard: SudokuBoardContext["updateBoard"] = (board) => {
+		const updateResponse = api.Sudoku.updateBoard({
+			...board,
+			type: boardType,
+			size: boardSize,
+			hints: boardHints,
+		});
+
+		if (updateResponse.ok) {
+			setBoards(updateResponse.payload.boards);
+		}
+
+		return updateResponse;
+	};
+
+	const sudokuBoardContext: SudokuBoardContext = {
 		exportBoard,
 		importBoard,
+		updateBoard,
+		boards,
 	};
 
 	const BoardNode = (
-		<SudokuBoard size={boardSize} type={boardType} mode={boardMode} style={boardStyle} />
+		<SudokuBoard
+			size={boardSize}
+			type={boardType}
+			mode={boardMode}
+			style={boardStyle}
+			hints={boardHints}
+			setHints={setBoardHints}
+		/>
 	);
 
-	return [BoardNode, boardContext];
+	return [BoardNode, sudokuBoardContext];
 };

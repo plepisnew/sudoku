@@ -39,18 +39,33 @@ export const normalBoardCellValueSchema = z.union([
 	z.literal(9),
 ]);
 
+const cellIndexesSchema = z.object({
+	blockIndex: z.number(),
+	cellIndex: z.number(),
+});
+
+const markSchema = cellIndexesSchema.merge(
+	z.object({
+		value: z.number(),
+	}),
+);
+
 const boardSchema = z.object({
 	id: z.string(),
 	name: z.string(),
 	description: z.string().optional(),
 	type: BoardType,
 	size: BoardSize,
-	hints: z.array(z.tuple([z.number(), normalBoardCellValueSchema])),
+	hints: z.array(markSchema),
 });
 
 const boardsSchema = z.array(boardSchema);
 
 export type Board = z.infer<typeof boardSchema>;
+
+export type Mark = z.infer<typeof markSchema>;
+
+export type CellIndexes = z.infer<typeof cellIndexesSchema>;
 
 export const SudokuConstants = {
 	LOCAL_STORAGE_KEY: "boards",
@@ -141,5 +156,33 @@ export class SudokuService {
 		localStorage.setItem(SudokuConstants.LOCAL_STORAGE_KEY, JSON.stringify(filteredBoards));
 
 		return { ok: true, payload: filteredBoards };
+	}
+
+	getBoard(id: Board["id"]): ApiResult<Board> {
+		const boards = this.listBoards().payload;
+
+		const board = boards.find((_board) => _board.id === id);
+
+		if (board === undefined) {
+			return { ok: false, error: `Unable to find board "${id}"` };
+		}
+
+		return { ok: true, payload: board };
+	}
+
+	updateBoard(board: Board): ApiResult<{ boards: Board[]; updatedBoard: Board }> {
+		const boardResponse = this.getBoard(board.id);
+
+		if (!boardResponse.ok) {
+			return boardResponse;
+		}
+
+		const boards = this.listBoards().payload.map((_board) =>
+			_board.id === board.id ? board : _board,
+		);
+
+		localStorage.setItem(SudokuConstants.LOCAL_STORAGE_KEY, JSON.stringify(boards));
+
+		return { ok: true, payload: { boards, updatedBoard: board } };
 	}
 }
