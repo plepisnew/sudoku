@@ -3,9 +3,16 @@ import React, { DetailedHTMLProps, HTMLAttributes } from "react";
 
 export type BoxProps = DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> & {
 	title?: string;
+	contentClassName?: string;
 };
 
-export const Box: React.FC<BoxProps> = ({ className, children, title, ...props }) => (
+export const Box: React.FC<BoxProps> = ({
+	className,
+	children,
+	title,
+	contentClassName,
+	...props
+}) => (
 	<div
 		className={cn(
 			"box",
@@ -25,6 +32,8 @@ export const Box: React.FC<BoxProps> = ({ className, children, title, ...props }
 				{title}
 			</span>
 		)}
-		<div className={cn("box-content", "p-4 flex flex-col gap-4 flex-grow")}>{children}</div>
+		<div className={cn("box-content", "p-4 flex flex-col gap-4 flex-grow", contentClassName)}>
+			{children}
+		</div>
 	</div>
 );

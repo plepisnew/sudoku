@@ -1,5 +1,11 @@
 import { ReactNode, useEffect, useState } from "react";
-import { BoardMode, BoardStyle, SudokuBoard, SudokuBoardProps } from "../sudoku/SudokuBoard";
+import {
+	BoardMode,
+	BoardStyle,
+	SudokuBoard,
+	SudokuBoardProps,
+	SudokuBoardPropsRefs,
+} from "../sudoku/SudokuBoard";
 import { Board, BoardSize, BoardType, SudokuService } from "@/api/Sudoku";
 import { z } from "zod";
 import { ApiResult, api } from "@/api";
@@ -23,14 +29,13 @@ export type UseSudokuBoardOptions = {
 	boardStyle?: z.infer<typeof BoardStyle>;
 	setBoardType: Setter<NonNullable<SudokuBoardProps["type"]>>;
 	setBoardSize: Setter<NonNullable<SudokuBoardProps["size"]>>;
-};
+} & SudokuBoardPropsRefs;
 
 export type SudokuBoard = {
 	name: string;
 	description?: string;
 	boardType: NonNullable<SudokuBoardProps>["type"];
 	boardSize: NonNullable<SudokuBoardProps>["size"];
-	hints: NonNullable<SudokuBoardProps>["hints"];
 };
 
 export const useSudokuBoard = ({
@@ -40,9 +45,10 @@ export const useSudokuBoard = ({
 	boardStyle = BoardStyle.Enum.NORMAL,
 	setBoardType,
 	setBoardSize,
+	hintsRef,
+	marksRef,
 }: UseSudokuBoardOptions): [ReactNode, SudokuBoardContext] => {
 	const [boards, setBoards] = useState<Board[]>([]);
-	const [boardHints, setBoardHints] = useState<Board["hints"]>([]);
 
 	useEffect(() => {
 		setBoards(api.Sudoku.listBoards().payload);
@@ -79,7 +85,7 @@ export const useSudokuBoard = ({
 
 		setBoardType(board.type);
 		setBoardSize(board.size);
-		setBoardHints(board.hints);
+		hintsRef.current = board.hints;
 
 		return {
 			ok: true,
@@ -96,7 +102,7 @@ export const useSudokuBoard = ({
 			...board,
 			type: boardType,
 			size: boardSize,
-			hints: boardHints,
+			hints: hintsRef.current,
 		});
 
 		if (updateResponse.ok) {
@@ -119,8 +125,7 @@ export const useSudokuBoard = ({
 			type={boardType}
 			mode={boardMode}
 			style={boardStyle}
-			hints={boardHints}
-			setHints={setBoardHints}
+			ref={{ marksRef, hintsRef }}
 		/>
 	);
 

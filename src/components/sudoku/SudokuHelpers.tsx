@@ -1,4 +1,4 @@
-import { BoardType } from "@/api/Sudoku";
+import { BoardSize, BoardType } from "@/api/Sudoku";
 import { cn } from "@/utils/cn";
 import { ReactNode } from "react";
 
@@ -41,4 +41,20 @@ export const Usage: Record<BoardType, ReactNode> = {
 	[BoardType.Enum.EVEN_ODD]: <div></div>,
 	[BoardType.Enum.CONSECUTIVE]: <div></div>,
 	[BoardType.Enum.WINDOKU]: <div></div>,
+};
+
+export const TypeDisplay: Record<BoardType, string> = {
+	[BoardType.Enum.NORMAL]: "Normal",
+	[BoardType.Enum.JIGSAW]: "Jigsaw",
+	[BoardType.Enum.DIAGONAL]: "Diagonal",
+	[BoardType.Enum.TENS_FIVES]: "Tens & Fives",
+	[BoardType.Enum.KILLER]: "Killer",
+	[BoardType.Enum.EVEN_ODD]: "Even & Odd",
+	[BoardType.Enum.CONSECUTIVE]: "Consecutive",
+	[BoardType.Enum.WINDOKU]: "Windoku",
+};
+
+export const SizeDisplay: Record<BoardSize, string> = {
+	[BoardSize.Enum.SMALL]: "Small (6x6)",
+	[BoardSize.Enum.NORMAL]: "Normal (9x9)",
 };

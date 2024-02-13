@@ -1,16 +1,18 @@
-import { BoardSize, BoardType } from "@/api/Sudoku";
+import { BoardSize, BoardType, Mark } from "@/api/Sudoku";
 import { useDropdown } from "@/components/hooks/useDropdown";
 import { useSudokuBoard } from "@/components/hooks/useSudokuBoard";
 import { BoardMode, BoardStyle } from "@/components/sudoku/SudokuBoard";
 import { Box } from "@/components/ui/Box";
 import { cn } from "@/utils/cn";
-import React from "react";
-import { Instructions, Usage } from "./BoardHelpers";
+import React, { useRef } from "react";
 import { Button } from "@/components/ui/Button";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useInput } from "@/components/hooks/useInput";
 import { toast } from "@/components/ui/Toaster";
 import { api } from "@/api";
+import { Instructions, Usage } from "@/components/sudoku/SudokuHelpers";
+import { useOnce } from "@/components/hooks/useOnce";
+import { BoardNotFound } from "@/components/sudoku/BoardNotFound";
 
 export const EditorPageConstants = {
 	PATH: "/editor",
@@ -21,7 +23,8 @@ export const EditorPage: React.FC = () => {
 	const [searchParams] = useSearchParams();
 
 	const boardId = searchParams.get("id");
-	const board = api.Sudoku.listBoards().payload.find(({ id }) => id === boardId);
+	const boards = api.Sudoku.listBoards().payload;
+	const board = boards.find(({ id }) => id === boardId);
 
 	const [BoardTypeDropdown, { value: boardType, setValue: setBoardType }] = useDropdown(
 		[
@@ -111,6 +114,9 @@ export const EditorPage: React.FC = () => {
 		wrapperClassName: "flex-grow",
 	});
 
+	const marksRef = useRef<Mark[]>([]);
+	const hintsRef = useRef<Mark[]>(board?.hints ?? []);
+
 	const [Board, sudokuContext] = useSudokuBoard({
 		boardMode: BoardMode.Enum.EDIT,
 		boardType,
@@ -118,19 +124,26 @@ export const EditorPage: React.FC = () => {
 		boardStyle,
 		setBoardSize,
 		setBoardType,
+		hintsRef,
+		marksRef,
 	});
+
+	useOnce(() => {
+		sudokuContext.importBoard(boardId!);
+	});
+
+	if (!board) {
+		return <BoardNotFound boards={boards} />;
+	}
 
 	const StorageButtons = (
 		<React.Fragment>
-			<Button variant="secondary" className="flex-1" onClick={() => navigate("/")}>
+			<Button variant="secondary" onClick={() => navigate("/")}>
 				{board ? "Discard Changes" : "Drop Board"}
 			</Button>
 			<Button
 				variant="primary"
-				className="flex-1"
 				onClick={() => {
-					console.log({ board });
-
 					if (board) {
 						const updateResponse = sudokuContext.updateBoard({ id: boardId!, name, description });
 
@@ -182,7 +195,9 @@ export const EditorPage: React.FC = () => {
 							{NameInput}
 							{DescriptionInput}
 						</div>
-						<div className={cn("button-container", "flex gap-4")}>{StorageButtons}</div>
+						<div className={cn("button-container", "flex gap-4 [&>*]:flex-1")}>
+							{StorageButtons}
+						</div>
 					</Box>
 				</div>
 				<Box className={cn("board-editor", "flex flex-col")} title="Board editor">
