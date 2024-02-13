@@ -1,15 +1,15 @@
 import { cn } from "@/utils/cn";
-import React, { DetailedHTMLProps, HTMLAttributes } from "react";
+import React, { DetailedHTMLProps, HTMLAttributes, ReactNode } from "react";
 
 export type BoxProps = DetailedHTMLProps<HTMLAttributes<HTMLDivElement>, HTMLDivElement> & {
-	title?: string;
+	Title?: ReactNode;
 	contentClassName?: string;
 };
 
 export const Box: React.FC<BoxProps> = ({
 	className,
 	children,
-	title,
+	Title,
 	contentClassName,
 	...props
 }) => (
@@ -21,7 +21,7 @@ export const Box: React.FC<BoxProps> = ({
 		)}
 		{...props}
 	>
-		{title && (
+		{Title && (
 			<span
 				className={cn(
 					"box-title",
@@ -29,7 +29,7 @@ export const Box: React.FC<BoxProps> = ({
 					"bg-zinc-200/90 border-b border-b-zinc-300",
 				)}
 			>
-				{title}
+				{Title}
 			</span>
 		)}
 		<div className={cn("box-content", "p-4 flex flex-col gap-4 flex-grow", contentClassName)}>

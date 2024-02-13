@@ -109,7 +109,6 @@ export const SudokuBoard = forwardRef<SudokuBoardPropsRefs, SudokuBoardProps>(
 		}, [size, type]);
 
 		useEffect(() => {
-			console.log({ message: "Setting hints", hints: hintsRef?.current });
 			hintsRef && setHints(hintsRef.current);
 			marksRef && setMarks(marksRef.current);
 		}, [setHints, setMarks, marksRef, hintsRef]);
@@ -698,38 +697,46 @@ export const SudokuBoard = forwardRef<SudokuBoardPropsRefs, SudokuBoardProps>(
 		 * @param cellIndexes Block and Cell indexes of the cell to render
 		 * @returns Renderable node corresponding to the cell
 		 */
-		const CreateCell = ({ blockIndex, cellIndex }: CellIndexes) => (
-			<div
-				key={cellIndex}
-				className={cn(
-					"sudoku-cell",
-					"flex justify-center items-center relative select-none",
-					"font-mono",
-					StyleClassNames[style].cell({ blockIndex, cellIndex }),
-				)}
-				tabIndex={0}
-				style={{
-					width: cellSize,
-					height: cellSize,
-					fontSize: Math.floor(cellSize / 1.5),
-				}}
-				onMouseEnter={getMouseEnterHandler({ blockIndex, cellIndex })}
-				onMouseDown={getMouseDownCellHandler({ blockIndex, cellIndex })}
-			>
+		const CreateCell = ({ blockIndex, cellIndex }: CellIndexes) => {
+			const hint = hints.find(getCellComparer({ blockIndex, cellIndex }))?.value;
+			const mark = marks.find(getCellComparer({ blockIndex, cellIndex }))?.value;
+
+			// prettier-ignore
+			const CellContents = 
+				hint ? <span className="font-normal">{hint}</span> :
+				mark ? <span className="font-light">{mark}</span> : "";
+
+			return (
 				<div
+					key={cellIndex}
 					className={cn(
-						"sudoku-cell-overlay",
-						"absolute top-0 left-0 h-full w-full -z-1 text-sm",
-						StyleClassNames[style].cellOverlay({ blockIndex, cellIndex }),
+						"sudoku-cell",
+						"flex justify-center items-center relative select-none",
+						StyleClassNames[style].cell({ blockIndex, cellIndex }),
 					)}
+					tabIndex={0}
+					style={{
+						minWidth: cellSize,
+						minHeight: cellSize,
+						fontSize: Math.floor(cellSize / 1.5),
+					}}
+					onMouseEnter={getMouseEnterHandler({ blockIndex, cellIndex })}
+					onMouseDown={getMouseDownCellHandler({ blockIndex, cellIndex })}
 				>
-					{!marks.some(getCellComparer({ blockIndex, cellIndex })) &&
-						PencilMarkContents({ cellIndex, blockIndex })}
+					<div
+						className={cn(
+							"sudoku-cell-overlay",
+							"absolute top-0 left-0 h-full w-full -z-1 text-sm",
+							StyleClassNames[style].cellOverlay({ blockIndex, cellIndex }),
+						)}
+					>
+						{!marks.some(getCellComparer({ blockIndex, cellIndex })) &&
+							PencilMarkContents({ cellIndex, blockIndex })}
+					</div>
+					{CellContents}
 				</div>
-				{hints.find(getCellComparer({ blockIndex, cellIndex }))?.value ??
-					marks.find(getCellComparer({ blockIndex, cellIndex }))?.value}
-			</div>
-		);
+			);
+		};
 
 		/**
 		 * Template for creating a block node

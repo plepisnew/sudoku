@@ -124,16 +124,13 @@ export class SudokuService {
 
 	addBoard(board: Omit<Board, "id">): ApiResult<{ boards: Board[]; newBoard: Board }> {
 		const storableBoard: Board = { ...board, id: crypto.randomUUID() };
-		console.log({ storableBoard });
 		const result = boardSchema.safeParse(storableBoard);
-		console.log({ result });
 
 		if (!result.success) {
 			return { ok: false, error: "Input board does not adhere to schema" };
 		}
 
 		const boards: Board[] = [result.data, ...this.listBoards().payload];
-		console.log({ boards });
 		localStorage.setItem(SudokuConstants.LOCAL_STORAGE_KEY, JSON.stringify(boards));
 
 		return { ok: true, payload: { boards, newBoard: storableBoard } };

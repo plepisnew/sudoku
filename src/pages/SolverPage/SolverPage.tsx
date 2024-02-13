@@ -40,19 +40,24 @@ export const SolverPage: React.FC = () => {
 
 	return (
 		<div className={cn("page-container", "flex gap-8 justify-center")}>
-			<Box title="Board (duh)">
-				<SudokuBoard mode={BoardMode.Enum.SOLVE} ref={{ hintsRef, marksRef }} />
+			<Box Title="Board (duh)">
+				<SudokuBoard
+					mode={BoardMode.Enum.SOLVE}
+					type={board.type}
+					size={board.size}
+					ref={{ hintsRef, marksRef }}
+				/>
 			</Box>
 			<div className={cn("content-container", "flex flex-col gap-8 w-[500px]")}>
-				<Box title="Information about board" contentClassName="gap-2">
+				<Box Title="Information about board" contentClassName="gap-2">
 					{boardInformation.map(([key, value]) => (
 						<span key={key}>
 							<span className="font-medium">{key}:</span> {value}
 						</span>
 					))}
 				</Box>
-				<Box title="How to solve?">{Instructions[board.type]}</Box>
-				<Box title="Cheats & stuff">
+				<Box Title="How to solve?">{Instructions[board.type]}</Box>
+				<Box Title="Cheats & stuff">
 					<div className="flex gap-4 [&>*]:flex-grow">
 						<Button variant="secondary" onClick={handleCheckBoard}>
 							Reset board

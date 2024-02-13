@@ -3,11 +3,14 @@ import { Router } from "./providers/Router";
 import { HeaderLayout } from "./adhoc/HeaderLayout";
 import { BrowserRouter } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import { SudokuApiProvider } from "./providers/SudokuApi";
 
 export const App: React.FC = () => (
 	<BrowserRouter>
 		<HeaderLayout>
-			<Router />
+			<SudokuApiProvider>
+				<Router />
+			</SudokuApiProvider>
 		</HeaderLayout>
 		<Toaster
 			toastOptions={{

@@ -129,10 +129,12 @@ export const EditorPage: React.FC = () => {
 	});
 
 	useOnce(() => {
-		sudokuContext.importBoard(boardId!);
+		if (board) {
+			sudokuContext.importBoard(boardId!);
+		}
 	});
 
-	if (!board) {
+	if (!boardId && board) {
 		return <BoardNotFound boards={boards} />;
 	}
 
@@ -185,12 +187,12 @@ export const EditorPage: React.FC = () => {
 			<h1 className={cn("page-title", "text-3xl")}>Sudoku Editor Dashboard</h1>
 			<div className={cn("content-container", "flex gap-4 items-start")}>
 				<div className={cn("config-container", "flex flex-col gap-4 flex-1 self-stretch")}>
-					<Box className={cn("board-config", "flex flex-col p-0")} title="Board configuration">
+					<Box className={cn("board-config", "flex flex-col p-0")} Title="Board configuration">
 						{BoardTypeDropdown}
 						{BoardSizeDropdown}
 						{BoardStyleDropdown}
 					</Box>
-					<Box className={cn("details-config", "flex-grow")} title="Board Details">
+					<Box className={cn("details-config", "flex-grow")} Title="Board Details">
 						<div className={cn("inputs-container", "flex flex-col gap-4 flex-grow")}>
 							{NameInput}
 							{DescriptionInput}
@@ -200,14 +202,14 @@ export const EditorPage: React.FC = () => {
 						</div>
 					</Box>
 				</div>
-				<Box className={cn("board-editor", "flex flex-col")} title="Board editor">
+				<Box className={cn("board-editor", "flex flex-col")} Title="Board editor">
 					{Board}
 				</Box>
 				<div className={cn("dashboard-info-container", "flex flex-col gap-4 flex-1 self-stretch")}>
-					<Box title="Instructions" className={cn("instruction-container", "")}>
+					<Box Title="Instructions" className={cn("instruction-container", "")}>
 						{Instructions[boardType]}
 					</Box>
-					<Box title="Usage" className={cn("usage-container", "flex-grow")}>
+					<Box Title="Usage" className={cn("usage-container", "flex-grow")}>
 						{Usage[boardType]}
 					</Box>
 				</div>
@@ -229,5 +231,10 @@ export const EditorPage: React.FC = () => {
 		Optimize code by using functional programming and using as few setters as possible and
 		avoiding duplicated method calls
 	</li>
+	<li>Prevent pencil marks and normal marks being written behind hints</li>
+	<li>Add control options for manually inputting digits</li>
+	<li>Add highlight options</li>
+	<li>Add chess sudoku</li>
+	<li>Fix styling</li>
 </ol> */
 }
